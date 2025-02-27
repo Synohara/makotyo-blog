@@ -1,13 +1,14 @@
 export default {
   index: {
-    type: 'page'
+    type: 'page',
+    title: 'About'
   },
   posts: {
     type: 'page',
-    items: {
-      eikaiwa: {
-        display: 'hidden'
-      }
-    }
+    title: 'Posts'
+  },
+  tracks: {
+    type: 'page',
+    title: 'My Music Works'
   }
 }
