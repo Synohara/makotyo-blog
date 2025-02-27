@@ -5,7 +5,12 @@ export default {
   },
   posts: {
     type: 'page',
-    title: 'Posts'
+    title: 'Posts',
+    items: {
+      eikaiwa: {
+        display: 'hidden'
+      }
+    }
   },
   tracks: {
     type: 'page',
