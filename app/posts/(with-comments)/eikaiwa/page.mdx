@@ -1,0 +1,28 @@
+---
+title: 英会話を生成AIで攻略したい
+date: 2025/2/14
+description: 感想
+tags: [eikaiwa]
+author: makotyo
+---
+
+## きっかけ
+オンライン英会話を会社で受けることになり、AIを使って英会話を攻略したいと思った。
+
+## OpenAI Realtime API
+WebRTCベースでリアルタイムにAIと会話できるAPIがあるということで、これを使って英会話を攻略してみようと思った。
+Geminiとかもリアルタイム系のAPIはあるにはあるのだがWeb Socketベースでコーディングがかなり辛そうだったので、こちらを使うことにした。
+
+手始めに：https://github.com/cameronking4/openai-realtime-api-nextjs
+Next.jsでOpenAI Realtime APIを使ったアプリのリポジトリがあったので、これをベースにやってみることにした。
+
+- アプリのデザイン
+    - 対訳用のプロンプトを作成 
+    ```
+    Please create a markdown table with exactly 2 columns comparing my English input and its Japanese translation.Do not modify, interpret, or rephrase my English input - translate it exactly as provided.Column headers should be \"English(Original)\" and \"Japanese(Translation)\".
+    ```
+    解説：英語の入力とその日本語訳を比較するテーブルを作成してください。英語の入力を変更、解釈、言い換えしないでください - そのまま提供された通りに翻訳してください。列見出しは「英語（原文）」と「日本語（翻訳）」にする必要があります。
+    - 会話の履歴を溜めてMarkdownテーブルとして表示
+    - うまく喋れなかった表現を溜めておく
+    - 会話の履歴をダウンロードできるようにする
+    - 講師の喋ってることのリアルタイム翻訳
