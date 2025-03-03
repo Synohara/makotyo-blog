@@ -1,0 +1,57 @@
+---
+title: Claude DesktopとLogseqの連携方法
+date: 2024/02/28
+tags: [tech, Claude, Logseq, MCP]
+description: Claude DesktopとLogseqを連携させる方法について、mcp-logseq-serverを使った実装方法を解説します
+author: makotyo
+---
+
+
+Claude DesktopとLogseqを連携させることで、Claudeから直接Logseqのナレッジベースにアクセスできるようになります。  
+ここでは[mcp-logseq-server](https://github.com/ergut/mcp-logseq-server)を使用した連携方法について説明します。
+
+## セットアップ方法
+
+### 1. mcp-logseq-serverの設定
+
+公式ドキュメントでは`uvx`を使用する方法が記載されていますが、私の環境では動作しなかったため、
+以下のような設定で実装しました：
+
+```json
+{
+    "mcpServers": {
+        "mcp-logseq": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "/Users/username/ghq/github.com/ergut/mcp-logseq-server",
+                "run",
+                "mcp-logseq"
+            ],
+            "env": {
+                "LOGSEQ_API_TOKEN": "your_token",
+                "LOGSEQ_API_URL": "http://localhost:12315"
+            }
+        }
+    }
+}
+```
+
+## できること
+
+### 1. Logseqページの作成
+
+Claudeを通じてLogseqに新しいページを作成できます。以下は実際の操作例です：
+
+Claudeを通じてLogseqのページ作成リクエストをすると
+![Claudeを使ってLogseqにページを作成する様子その1](/create_page_logseq_mcp_1.png "Logseqページ作成のリクエスト")
+
+Logseqに新しいページができます。
+![Claudeを使ってLogseqにページを作成する様子その2](/create_page_logseq_mcp_2.png "作成されたLogseqページの確認")
+
+MCPを通じてClaudeからLogseqのAPIにアクセスし、新しいページを作成できます。
+
+
+### 2. 活動のまとめ作成
+Logseqを使っていれば毎日の活動を記録していると思いますが、Claudeを使ってその内容をまとめることができます。
+

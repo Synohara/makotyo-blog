@@ -1,0 +1,24 @@
+---
+title: "SCD Type2をClaudeで完全理解する"
+date: 2025/02/28
+tags: [database, data-warehouse, slowly-changing-dimension]
+description: "Claudeに小難しい概念の理解を助けてもらうシリーズ"
+author: makotyo
+---
+
+import SCDType2Visualization from '../../../_components/SCDType2Visualization'
+
+Claudeに小難しい概念の理解を助けてもらうシリーズ第2弾です。  
+今回はSlowly Changing Dimension（SCD） Type2について解説します。
+
+
+## SCD Type2とは
+
+ざっくり言えばSCD Type2はデータの変更履歴を保持するための手法です。  
+例えば、ある店舗の所在地が変更された場合、その変更前後の情報を両方とも保持したい場合に使用します。
+
+<SCDType2Visualization />
+
+いい感じですね。  
+個人的にSCD Type2はデータがどのように変化していくかとそれをどう記録していくかをイメージできるようになればそんなに難しい概念ではないと思うのでこういう図を見れば理解の助けになるんじゃないかと思いました。
+

@@ -13,27 +13,27 @@ export default async function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <Head backgroundColor={{ dark: '#0f172a', light: '#fefce8' }} />
       <body>
-        <Layout>
-          <Navbar pageMap={await getPageMap()}>
-            <Search />
-            <ThemeSwitch />
-          </Navbar>
+          <Layout>
+            <Navbar pageMap={await getPageMap()}>
+              <Search />
+              <ThemeSwitch />
+            </Navbar>
 
-          {children}
+            {children}
 
-          <Footer>
-            <abbr
-              title="This site and all its content are licensed under a Creative Commons Attribution-NonCommercial 4.0 International License."
-              style={{ cursor: 'help' }}
-            >
-              CC BY-NC 4.0
-            </abbr>{' '}
-            {new Date().getFullYear()} © makotyo
-            <a href="/feed.xml" style={{ float: 'right' }}>
-              RSS
-            </a>
-          </Footer>
-        </Layout>
+            <Footer>
+              <abbr
+                title="This site and all its content are licensed under a Creative Commons Attribution-NonCommercial 4.0 International License."
+                style={{ cursor: 'help' }}
+              >
+                CC BY-NC 4.0
+              </abbr>{' '}
+              {new Date().getFullYear()} © makotyo
+              <a href="/feed.xml" style={{ float: 'right' }}>
+                RSS
+              </a>
+            </Footer>
+          </Layout>
       </body>
     </html>
   )
