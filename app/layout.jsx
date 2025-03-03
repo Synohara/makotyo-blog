@@ -3,6 +3,7 @@ import { Banner, Head, Search } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-blog/style.css'
 import './globals.css'
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata = {
   title: 'Blog Example'
@@ -20,6 +21,7 @@ export default async function RootLayout({ children }) {
             </Navbar>
 
             {children}
+            <Analytics />
 
             <Footer>
               <abbr
