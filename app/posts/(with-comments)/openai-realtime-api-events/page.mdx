@@ -1,0 +1,43 @@
+---
+title: OpenAI Realtime APIのイベントをまとめてみた
+date: 2025/03/03
+tags: [tech, OpenAI, WebRTC, API]
+description: OpenAI Realtime APIのさまざまなイベントをわかりやすく図解して解説します。WebRTCの接続フローから音声処理まで、技術的な詳細を視覚的に理解できます。
+author: makotyo
+---
+
+import RealtimeAPIVisualization from '../../../_components/RealtimeAPIVisualization'
+import WebRTCVisualization from '../../../_components/WebRTCVisualization'
+
+OpenAI Realtime APIは、WebRTCを利用したリアルタイム音声対話を実現するための強力なAPIですが、関連するイベントやフローが多岐にわたり、ドキュメントだけでは理解が難しい部分があります。
+
+この記事では、Realtime APIの主要なイベントの種類とフローをまとめてみました。
+
+## WebRTCの基本的な接続フロー
+
+まず、OpenAI Realtime APIの基盤となるWebRTCの接続フローと主要な機能について見ていきましょう。  
+以下の図では、セッションの初期化からP2P接続の確立、音声処理の流れまでを視覚的に解説しています。
+
+<WebRTCVisualization />
+
+WebRTCの接続フローは以下のような順序で進行します：
+
+1. REST APIによるセッション作成とクライアントシークレットの取得
+2. WebRTCシグナリングプロセスの開始
+3. OpenAI Realtime APIとの接続確立
+4. 音声ストリームの送受信開始
+
+## Realtime APIのイベントフロー
+
+次に、OpenAI Realtime APIで利用可能な具体的なイベントについて詳しく見ていきます。  
+主にサーバーから送られてくるイベントをアプリケーションでハンドリングしていくことになります。
+
+<RealtimeAPIVisualization />
+
+
+## まとめ
+
+このあたりの情報とフローを頭に入れておくと、OpenAI Realtime APIを使った開発がスムーズに進むと思います。  
+本記事では[OpenAI Realtime API公式ドキュメント](https://platform.openai.com/docs/api-reference/realtime)を参考に、イベントフローや接続プロセスを図解しています。公式ドキュメントでは技術的な詳細が記載されていますが、本記事ではより視覚的に理解しやすい形で整理しました。
+
+
