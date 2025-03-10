@@ -1,0 +1,332 @@
+---
+title: Clineと協力してブログを書くための試行錯誤
+date: 2025/03/06
+tags: [tech, AI, cline]
+description: VSCodeの拡張機能としてClineと一緒にブログを書く方法について、試行錯誤した内容をまとめています。
+author: makotyo
+---
+
+ブログを書く時って書きたいネタが頭に浮かぶ → 実際に記事を書く  
+の割と大きな壁ってありますよね。少なくとも私はそうです。  
+Clineと一緒にブログを書けば、その壁を少しでも低くできるんじゃないかと思い試行錯誤した記録をまとめます。  
+ちなみにこのブログサイト自体もClineと協力して構築しました。
+
+## ブログ執筆における試行錯誤
+
+基本的にClineはコーディングをサポートするためのAIエージェントですがブログ記事の執筆にも利用できるのではないかと考えました。  
+Markdownで記事を公開できるタイプの静的サイトジェネレーターを使えば、ブログの執筆=Markdownファイルの編集となるため、エディタ上での執筆が可能になります。  
+Nextraでブログを構築することにしました。ここではNextra自体の構築方法については割愛しますが、Nextraの記事本文はMDXファイルで記述していくことになります。
+
+
+### .clinerules
+
+Clineと一緒にブログを書く際にキモとなるのが`.clinerules`の内容です。
+
+- どんな構成で
+- どんなルールで
+- どんなディレクトリ構成で
+
+というようなブログを執筆する際の条件を書いていきます。
+
+例えばNextraでは記事本文のMDXファイルにfront matterを記述する必要があるため、Clineにはfront matterの記述を促すルールを書いておきます。
+
+```` markdown
+各記事は以下のメタ情報を含める：
+
+``` markdown
+---
+title: 記事のタイトル
+date: YYYY/MM/DD
+tags: [tag1, tag2]
+description: 記事の簡単な説明
+author: makotyo
+---
+```
+````
+
+
+またfront matterのtitleから記事の見出しタイトルが生成されるため、本文には見出しを含める必要がありません。この点を.clinerulesを記述しない状態だと理解してくれなかったため、以下のルールを追加しました。
+
+```markdown
+CAUTION: 見出し文はメタ情報から自動生成されるため、記事中に見出し文を記述しないでください。
+```
+
+`.clinerules`全文は以下のようにしました。
+
+<details>
+<summary>.clinerules</summary>
+
+````
+
+# ブログ記事の書き方方針
+
+## 記事の基本方針
+
+- 技術記事、日記、ライブの感想、旅行記など、様々なジャンルの記事を書く
+- カジュアルな文体で、読みやすさを重視する
+- 個人の経験や考えを大切にし、誠実に書く
+
+## 記事のメタ情報
+
+各記事は以下のメタ情報を含める：
+
+```mdx
+---
+title: 記事のタイトル
+date: YYYY/MM/DD
+tags: [tag1, tag2]
+description: 記事の簡単な説明
+author: makotyo
+---
+```
+
+## 記事の構成
+
+CAUTION: 見出し文はメタ情報から自動生成されるため、記事中に見出し文を記述しないでください。
+
+### 技術記事の場合
+
+1. イントロダクション（問題意識や背景）
+2. 本文（手順や説明）
+3. まとめ（振り返りや学んだこと）
+
+コードブロックを使用する場合：
+- 言語指定を必ず行う（例：```typescript）
+- コードの説明を前後に記載する
+- 重要な部分にコメントを入れる
+
+### 日記・感想文の場合
+
+1. タイトル（日付や出来事）
+2. 本文（時系列や印象的だった順）
+3. 感想（その日の振り返りや思ったこと）
+
+## 見出しレベル
+
+- h2（##）: 大きなセクション
+- h3（###）: サブセクション
+- h4（####）以降: 必要に応じて使用
+
+## 画像の使用
+
+- 画像ファイル名は内容がわかる具体的な名前をつける
+- alt属性を必ず設定する
+- 必要に応じてキャプションを追加する
+
+```mdx
+![画像の説明](/path/to/image.jpg "オプションのタイトル")
+```
+
+## リンクの扱い
+
+- 外部リンクは必ず`target="_blank"`を付ける
+- 参考文献やソースは記事の最後にまとめる
+
+## タグの使用方針
+
+- 技術記事: 使用した技術やツールの名前
+- 日記: 行動カテゴリ（旅行、ライブなど）
+- 共通: 記事の種類（tech, diary, live, travel）
+
+## プレビュー確認
+
+投稿前に以下を確認：
+1. メタ情報が正しく設定されているか
+2. 画像が正しく表示されるか
+3. コードブロックのシンタックスハイライトが効いているか
+4. リンクが正しく機能するか
+5. スマートフォンでの表示が崩れていないか
+
+## 更新ポリシー
+
+- 技術記事は、情報が古くなった場合に更新する
+- 誤字脱字の修正は随時行う
+- 大きな更新の場合は、更新日と更新内容を記載する
+
+## 文体について
+
+- 既存の記事を確認し文体はなるべく近づけて書く 
+
+## 記事の配置について
+
+- 新たに作成する記事は `app/posts/(with-comments)/` に配置する
+- 配置する際は記事タイトルとして新たにディレクトリを作成する
+- 記事本文は `page.mdx`に記述する
+
+````
+
+</details>
+
+ここまでであらかた準備は完了です。  
+試しに桃太郎のあらすじをまとめるブログの作成を依頼してみました。
+
+Clineの履歴は以下のような感じになりました。
+
+<div className="bg-gray-100 p-4 rounded-lg">
+
+**User:**
+
+<task>
+桃太郎のあらすじをブログにまとめて
+</task>
+<environment_details>
+# VSCode Visible Files
+app/posts/(with-comments)/try-blog-with-cline/page.mdx
+
+# VSCode Open Tabs
+app/posts/(with-comments)/try-blog-with-cline/page.mdx
+.clinerules
+
+# Current Time
+2025/3/6 午前11:32:01 (Asia/Tokyo, UTC+9:00)
+
+# Current Context Size (Tokens)
+(Not available)
+
+# Current Mode
+<slug>code</slug>
+<name>Code</name>
+
+
+# Current Working Directory (/Users/shinoharamakoto/makotyo-blog) Files
+.clinerules
+.gitignore
+mdx-components.js
+next-env.d.ts
+next.config.js
+package.json
+pnpm-lock.yaml
+postcss.config.cjs
+tailwind.config.cjs
+tsconfig.json
+app/
+app/_meta.global.js
+app/globals.css
+app/icon.svg
+app/layout.jsx
+app/page.mdx
+app/_components/
+app/_components/RealtimeAPIVisualization.jsx
+app/_components/SCDType2Visualization.jsx
+app/_components/TagFlow.tsx
+app/_components/WebRTCVisualization.jsx
+app/posts/
+app/posts/get-posts.js
+app/posts/page.jsx
+app/posts/(with-comments)/
+app/rss.xml/
+app/rss.xml/route.js
+app/tags/
+app/tags/[tag]/
+app/tags/[tag]/page.jsx
+app/tracks/
+app/tracks/page.jsx
+app/tracks/tracks-data.js
+public/
+public/create_page_logseq_mcp_1.png
+public/create_page_logseq_mcp_2.png
+public/img.jpeg
+public/_pagefind/
+</environment_details>
+
+---
+
+**Assistant:**
+
+<thinking>
+タスクを分析します：
+1. 桃太郎のあらすじを記事として書く必要があります
+2. 記事の配置は `app/posts/(with-comments)/` ディレクトリに新しいディレクトリを作成し、その中に `page.mdx` として配置する必要があります
+3. 記事はメタ情報を含める必要があり、.clinerulesに従って記述する必要があります
+
+まず、新しい記事を作成するために write_to_file ツールを使用します。
+</thinking>
+
+<write_to_file>
+<path>app/posts/(with-comments)/momotaro-story/page.mdx</path>
+
+\<content\>
+---
+title: 日本昔話「桃太郎」のあらすじ
+date: 2025/03/06
+tags: [story, japanese-folklore, diary]
+description: 日本の伝統的な昔話「桃太郎」のあらすじをまとめました
+author: makotyo
+---
+
+昔々、あるところにおじいさんとおばあさんが住んでいました。おばあさんが川で洗濯をしていると、大きな桃が流れてきました。おばあさんはその桃を持ち帰り、おじいさんと一緒に食べようとすると、桃が割れて、中から元気な男の子が生まれました。その子は桃から生まれたので「桃太郎」と名付けられました。
+
+桃太郎は、すくすくと成長して、たくましい若者になりました。ある日、鬼ヶ島の鬼たちが村人たちの財宝を奪っているという噂を聞きました。桃太郎は村人たちを助けるため、鬼ヶ島へ鬼退治に行くことを決意しました。
+
+おばあさんは桃太郎のために、日本一おいしいキビ団子を作ってくれました。桃太郎は、このキビ団子を持って旅に出ました。道中、イヌ、サル、キジに出会い、キビ団子を分け与えると、彼らは桃太郎の家来になることを約束しました。
+
+仲間たちと共に鬼ヶ島に到着した桃太郎は、鬼たちと激しい戦いを繰り広げました。イヌは勇敢に戦い、サルは素早く動き回り、キジは空から攻撃を仕掛けました。最後には、鬼の首領も桃太郎の強さに感服し、降参しました。
+
+鬼たちは悪事を働いたことを反省し、村人たちから奪った財宝を返すことを約束しました。桃太郎は、仲間たちと共に財宝を持って村に戻り、めでたく暮らしました。
+
+この物語は、勇気、正義、協力の大切さを教えてくれる日本の代表的な昔話です。キビ団子を分け与えることで仲間を作り、力を合わせて困難を乗り越えるという展開は、今日でも多くの人々の心に響いています。\</content\>
+
+<line_count>24</line_count>
+</write_to_file>
+
+<thinking>
+記事を作成できました。記事の内容は以下の要素を含んでいます：
+- メタ情報（タイトル、日付、タグ、説明、著者）
+- 物語の時系列に沿ったあらすじ
+- 物語の教訓についての考察
+
+タスクは完了したので、attempt_completion を使用して結果を報告します。
+</thinking>
+
+<attempt_completion>
+<result>
+桃太郎のあらすじを記事として作成しました。記事は app/posts/(with-comments)/momotaro-story/page.mdx に配置されています。記事には日本の伝統的な昔話としての桃太郎の物語を、時系列に沿って分かりやすくまとめ、その教訓についても触れています。
+</result>
+</attempt_completion>
+
+---
+
+**User:**
+
+[write_to_file for 'app/posts/(with-comments)/momotaro-story/page.mdx'] Result:
+The content was successfully saved to app/posts/(with-comments)/momotaro-story/page.mdx.
+Tool [attempt_completion] was not executed because a tool has already been used in this message. Only one tool may be used per message. You must assess the first tool's result before proceeding to use the next tool.
+<environment_details>
+# VSCode Visible Files
+app/posts/(with-comments)/momotaro-story/page.mdx
+
+# VSCode Open Tabs
+app/posts/(with-comments)/try-blog-with-cline/page.mdx
+app/posts/(with-comments)/momotaro-story/page.mdx
+.clinerules
+
+# Current Time
+2025/3/6 午前11:32:39 (Asia/Tokyo, UTC+9:00)
+
+# Current Context Size (Tokens)
+12,934 (16%)
+
+# Current Mode
+<slug>code</slug>
+<name>Code</name>
+</environment_details>
+
+---
+
+**Assistant:**
+
+<thinking>
+write_to_file ツールの実行が成功しました。次に attempt_completion ツールを使用して、タスクの完了を報告します。
+</thinking>
+
+<attempt_completion>
+<result>
+桃太郎のあらすじを記事として作成し、app/posts/(with-comments)/momotaro-story/page.mdx に保存しました。記事には日本の伝統的な昔話としての桃太郎の物語を、時系列に沿って分かりやすくまとめ、その教訓についても触れています。
+</result>
+</attempt_completion>
+
+</div>
+
+
+できたブログはこちらです。  
+[日本昔話「桃太郎」のあらすじ](/posts/momotaro-story)
