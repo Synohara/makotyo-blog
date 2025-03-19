@@ -34,7 +34,7 @@ const ClaudeChat = () => {
         // タイムスタンプでメッセージをソート
         const sortedData = { ...data[0] };
         sortedData.chat_messages = [...data[0].chat_messages].sort((a, b) => {
-          return new Date(a.created_at) - new Date(b.created_at);
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         });
 
         setChatData(sortedData);
