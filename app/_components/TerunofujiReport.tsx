@@ -214,7 +214,7 @@ const TerunofujiReport = () => {
                       "-3": "序二段", "-2": "三段目", "-1": "幕下", "0": "十両",
                       "1": "前頭", "2": "小結", "3": "関脇", "4": "大関", "5": "横綱"
                     };
-                    return [rankLabels[value], "階級"];
+                    return [rankLabels[String(value)], "階級"];
                   }}
                   labelFormatter={(label) => `場所: ${label}`}
                 />
