@@ -1,0 +1,112 @@
+---
+title: OpenHandsを試してみた
+date: 2025/03/05
+tags: [tech, OpenHands, GPTs, Docker, Gemini, Next.js]
+description: AIアシスタントフレームワークのOpenHandsを実際に試してみた体験記
+author: makotyo
+---
+
+# OpenHandsを試してみた
+
+## はじめに
+- OpenHandsとは何か
+- なぜOpenHandsに興味を持ったのか
+- 本記事の目的
+
+## OpenHandsのセットアップ
+### 事前準備
+1. Docker Desktopのインストール
+   - macOS環境での準備
+   - 必要なシステム要件
+
+2. Gemini APIキーの取得
+   - [Google AI Studio](https://aistudio.google.com/app/apikey?hl=ja)からAPIキーを取得
+   - 無料で利用可能
+   - APIキーの安全な管理方法
+
+### インストール手順
+1. OpenHandsのイメージを取得
+```bash
+docker pull docker.all-hands.dev/all-hands-ai/runtime:0.27-nikolaik
+```
+
+2. OpenHandsの実行
+```bash
+docker run -it --rm --pull=always \
+    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.27-nikolaik \
+    -e LOG_ALL_EVENTS=true \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v ~/.openhands-state:/.openhands-state \
+    -p 3000:3000 \
+    --add-host host.docker.internal:host-gateway \
+    --name openhands-app \
+    docker.all-hands.dev/all-hands-ai/openhands:0.27
+```
+
+### 各オプションの説明
+- `-it`: インタラクティブモードでコンテナを実行
+- `--rm`: コンテナ停止時に自動的に削除
+- `--pull=always`: 常に最新のイメージを使用
+- 環境変数の設定
+  - `SANDBOX_RUNTIME_CONTAINER_IMAGE`: 使用するランタイムイメージ
+  - `LOG_ALL_EVENTS`: イベントログの出力設定
+- ボリュームマウント
+  - `/var/run/docker.sock`: Dockerデーモンとの通信用
+  - `~/.openhands-state`: 状態保持用
+- `-p 3000:3000`: ポートフォワーディング設定
+- その他の設定
+  - `--add-host`: ホストマシンへのアクセス設定
+  - `--name`: コンテナ名の指定
+
+### APIキーの設定
+- 取得したGemini APIキーの設定方法
+- OpenHandsでの利用方法
+- APIキーのセキュリティ考慮事項
+
+## 主な機能と特徴
+- 基本的なアーキテクチャ
+- 提供される機能
+- 他のフレームワークとの違い
+
+## 実際に使ってみる
+### プロジェクト: 808シーケンサーエミュレーター
+OpenHandsに以下の要件で808シーケンサーエミュレーターの開発を依頼しました：
+
+```markdown
+要件：
+- TR-808風の外観デザイン
+- スイング機能の実装
+- 1/64までの分解能サポート
+- Web MIDI APIの使用
+- Next.jsでのSPA実装
+```
+
+### 開発プロセス
+1. プロジェクトの作成
+   - create-next-appを使用した初期セットアップ
+   - 必要なパッケージのインストール
+
+2. AIとのやり取り
+   - 要件の詳細化
+   - 実装方針の相談
+   - コードレビューと改善提案
+
+3. 実装の進め方
+   - コンポーネント設計
+   - MIDI機能の実装
+   - UIデザインの調整
+
+## 使ってみての感想
+- 良かった点
+- 課題点
+- 改善の余地
+
+## まとめ
+- OpenHandsの可能性
+- 今後の展望
+- 個人的な見解
+
+## 参考リンク
+- [OpenHands公式ドキュメント](https://docs.all-hands.dev/modules/usage/installation)
+- [Google AI Studio](https://aistudio.google.com/app/apikey?hl=ja)
+- 関連リソース

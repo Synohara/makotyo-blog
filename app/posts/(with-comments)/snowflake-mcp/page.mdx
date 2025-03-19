@@ -1,0 +1,183 @@
+---
+title: Snowflake MCP Server使ってみた・感じたこと
+date: 2025/03/19
+tags: [tech, snowflake, mcp, database, react, typescript]
+description: Snowflake MCP Serverの紹介と大相撲力士の戦績分析への応用例
+author: makotyo
+---
+
+Snowflake MCP Serverは、Snowflakeとの対話を可能にするModel Context Protocol (MCP) serverです。  
+このServerを使用することで、SQLクエリの実行やデータ分析の洞察を簡単に行うことができます。  
+この記事では、Snowflake MCP Serverのインストール方法から実際の使用例を紹介します。
+
+## インストール方法
+
+Snowflake MCP Serverをインストールする方法は主に3つあります：
+
+### Smitheryを使用したインストール
+
+最も簡単な方法は、Smitheryを使用したインストールです：
+
+```bash
+npx -y @smithery/cli install mcp_snowflake_server --client claude
+```
+
+### uvxを使用したインストール
+
+Smitheryを使用したインストールでは対話形式でSnowflakeの認証情報を入力すると`claude_desktop_config.json`に設定が追加されますが直接設定を追加することもできます。以下のように設定を追加します：
+
+```json
+"mcpServers": {
+  "snowflake_pip": {
+      "command": "uvx",
+      "args": [
+          "mcp_snowflake_server",
+          "--account",
+          "the_account",
+          "--warehouse",
+          "the_warehouse",
+          "--user",
+          "the_user",
+          "--password",
+          "their_password",
+          "--role",
+          "the_role",
+          "--database",
+          "the_database",
+          "--schema",
+          "the_schema"
+      ]
+  }
+}
+```
+
+### ローカルインストール
+
+ローカルにインストールする場合も、同様に`claude_desktop_config.json`に設定を追加します。  
+MCP Snowflake Serverのコードは[こちら](https://github.com/isaacwasserman/mcp-snowflake-server)にあるので、それをローカルにクローンして使います。
+
+```json
+"mcpServers": {
+  "snowflake_local": {
+      "command": "uv",
+      "args": [
+          "--directory",
+          "/absolute/path/to/mcp_snowflake_server",
+          "run",
+          "mcp_snowflake_server",
+          "--account",
+          "the_account",
+          "--warehouse",
+          "the_warehouse",
+          "--user",
+          "the_user",
+          "--password",
+          "their_password",
+          "--role",
+          "the_role",
+          "--database",
+          "the_database",
+          "--schema",
+          "the_schema"
+      ]
+  }
+}
+```
+
+## 提供される機能
+
+Snowflake MCP Serverは以下の機能を提供します：
+
+### リソース
+
+- `memo://insights`: データ分析中に発見された洞察を集約する、継続的に更新されるメモリソース
+
+### ツール
+
+#### クエリツール
+- `read_query`: SELECTクエリを実行してデータを読み取り
+- `write_query`: INSERT、UPDATE、DELETEクエリを実行（`--allow-write`フラグが必要）
+- `create_table`: 新しいテーブルを作成（`--allow-write`フラグが必要）
+
+#### スキーマツール
+- `list_tables`: データベース内の全テーブルをリスト
+- `describe-table`: 特定のテーブルのカラム情報を表示
+
+#### 分析ツール
+- `append_insight`: 発見したデータの洞察をメモリソースに追加
+
+## 活用例：大相撲力士の戦績分析
+
+Snowflake MCP Serverを使って実際のデータ分析を行う例として、大相撲力士・照ノ富士の戦績分析をやってみました。
+
+### Claude Desktopから使ってみる
+
+Snowflake MCPのインストールが完了したら、Claude DesktopからMCP Serverを呼び出して見ましょう。  
+ここでは大相撲のデータがSnowflake上に格納されている前提で、照ノ富士の戦績データを取得してみます。  
+使用しているデータは[こちら](https://data.world/cervus/sumo-japan)です。
+
+以下のようなプロンプトをClaude Desktop上で入力します。  
+テーブルの名前やカラム名やカラムに格納されている値をプロンプトに含めておくとスムーズに分析が進みます。
+
+``` 
+Terunofuji（照ノ富士）の戦績を分析してビジュアルレポートを作成してください。
+snowflake_pipのread_queryで確認してください。
+ SUMO.CHANCO.BANZUKEテーブルのPREV_Wが前場所の勝利数、PREV_Lが敗退数です。 
+RANKカラムには以下のような値が入っています。
+Yで始まる: 横綱（Yokozuna）
+Oで始まる: 大関（Ozeki）
+Sで始まる: 関脇（Sekiwake）
+Kで始まる: 小結（Komusubi）
+Mで始まる: 前頭（Maegashira）
+BASHOカラムで以下のような形式で開催された場所が記録されています。
+2023.01: 2023年1月場所
+力士の名前は「RIKISHI」というカラム名です
+力士の誕生日は「BIRTH_DATE」というカラム名で日付型で保存されています。
+日付型のカラムはJSON化できないので、VARCHAR型に変換してください。
+```
+
+以下のような会話で進行しレポートを出力してくれました。
+
+import { ClaudeChat } from '../../../_components/ClaudeChat';
+
+<ClaudeChat scenarios={{
+  "terunofuji": {
+    "title": "照ノ富士の戦績分析",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Terunofuji（照ノ富士）の戦績を分析してビジュアルレポートを作成してください。\nsnowflake_pipのread_queryで確認してください。\n SUMO.CHANCO.BANZUKEテーブルのPREV_Wが前場所の勝利数、PREV_Lが敗退数です。 \nRANKカラムには以下のような値が入っています。\nYで始まる: 横綱（Yokozuna）\nOで始まる: 大関（Ozeki）\nSで始まる: 関脇（Sekiwake）\nKで始まる: 小結（Komusubi）\nMで始まる: 前頭（Maegashira）\nBASHOカラムで以下のような形式で開催された場所が記録されています。\n2023.01: 2023年1月場所\n力士の名前は「RIKISHI」というカラム名です\n力士の誕生日は「BIRTH_DATE」というカラム名で日付型で保存されています。\n日付型のカラムはJSON化できないので、VARCHAR型に変換してください。"
+      },
+      {
+        "role": "assistant",
+        "content": "テルノフジ（照ノ富士）の戦績分析のビジュアルレポートを作成します。まずは、データベースから彼の戦績を確認しましょう。\n\n\nread_queryの結果を表示\n\n次に、幕内力士（横綱、大関、関脇、小結、前頭）のトップ10の力士のデータも取得します：\n\n\nread_queryの結果を表示\n\nそれでは、取得したデータを分析し、ビジュアルレポートを作成しましょう。テルノフジの戦績分析を行うために、データをJavaScriptで処理します。\n\n\n分析\n\nでは、テルノフジの戦績分析ビジュアルレポートを作成しましょう。\n\n\n照ノ富士の戦績分析ビジュアルレポート\nクリックしてコンポーネントを開く"
+      },
+      {
+        "role": "user",
+        "content": "続ける"
+      },
+      {
+        "role": "assistant",
+        "content": "続けて照ノ富士の戦績分析ビジュアルレポートを作成します。\n\n\n照ノ富士の戦績分析ビジュアルレポート\n編集済み\nクリックしてコンポーネントを開く\n照ノ富士の戦績分析ビジュアルレポートを作成しました。このレポートでは、彼の力士としてのキャリアを詳細に視覚化し、分析しています。\n\n主な内容として以下が含まれています：\n\n基本情報とキャリアハイライト：\n生年月日、出身地、所属部屋などの基本情報\n初土俵から横綱昇進までの重要な節目\n通算成績と各階級での在位期間\n年別勝率推移グラフ：\n2013年から2024年までの年ごとの勝率変化\n2018年の怪我による低迷と2019年からの復活が明確に表示\n階級別勝率バーチャート：\n横綱、大関、関脇などの各階級での勝率比較\n横綱時代の高い76.5%の勝率が特徴的\n階級変遷の推移グラフ：\n十両からのスタートから横綱への昇進までの推移\n2018年の大怪我による幕下までの転落と復活過程\n主な休場期間と功績：\n膝の怪我による主要な休場期間\n初優勝、大関・横綱昇進などの主な功績\nキャリア戦績内訳の円グラフ：\n各階級での在位場所数の視覚的な比較\n分析まとめ：\n相撲史上類を見ない幕下からの横綱再昇進という偉業\n怪我との戦いと不屈の精神についての考察\nこのビジュアルレポートは、照ノ富士の変動の多いキャリアと、怪我を乗り越えての復活という特筆すべき軌跡を示しています。現役の横綱として今後も注目されるでしょう。"
+      }
+    ]
+  }
+}} />
+
+<br />
+
+最終的に以下のようなビジュアルレポートが生成されました。  
+ポン出しでこれが出てくるのは凄いですね。
+
+import TerunofujiReport from '../../../_components/TerunofujiReport';
+
+<TerunofujiReport />
+
+## Snowflake MCP Serverで広がるデータの民主化
+
+Snowflake MCP Serverを試して見て感じたのはこのツールがデータの民主化を進めるのに非常に役立ちそうだということです。  
+分析を行いたい人が対象のデータの詳しい中身について把握できていない状態でも対話形式でデータの中身を確認しながら分析を進めることができます。  
+さらにClaudeのAnalysis toolによって分析した結果のレポート作成も即座に行うことが可能です。  
+これらの作業は従来だとExplonatory Data Analysis（EDA）と呼ばれJupyter Notebookなどを使って行うことが多かったですが、Snowflake MCP Serverを使うことでそれをClaude Desktop上で対話的に行うことが可能になります。
+
+ということでSnowflake MCP Serverはいいぞという記事でした。

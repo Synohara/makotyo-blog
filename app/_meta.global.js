@@ -9,6 +9,9 @@ export default {
     items: {
       eikaiwa: {
         display: 'hidden'
+      },
+      "try-openhands": {
+        display: 'hidden'
       }
     }
   },
