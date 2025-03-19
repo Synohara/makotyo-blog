@@ -314,4 +314,4 @@ const ClaudeChat = () => {
   );
 };
 
-export { ClaudeChat };
+export default ClaudeChat;
