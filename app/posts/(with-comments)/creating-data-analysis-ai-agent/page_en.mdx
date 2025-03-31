@@ -1,0 +1,284 @@
+---
+title: Creating a Data Analysis AI Agent
+date: 2025/03/25
+tags: [AI, Data Analysis, Technology]
+description: This article explains the steps and background of creating a data analysis AI agent.
+author: makotyo
+---
+
+### Summary
+
+In this blog post, we explained how to create a data analysis AI agent. Below are the key points of the article.
+
+1. **Introduction**
+   - Explained the necessity and background of the data analysis AI agent.
+   - Touched on specific use cases and expected outcomes.
+
+2. **Main Content**
+   - Detailed the design and development steps of the agent.
+   - Explained the technologies and tools used, and provided code examples.
+   - Introduced best practices and points to note at each step.
+
+3. **Conclusion**
+   - Reflected on what was learned through the creation of the data analysis AI agent.
+   - Considered future improvements and potential developments.
+
+Refer to this summary to review the overall flow of the article and supplement or revise the content as needed.
+As a commemoration of starting with Mastra, I created a data analysis AI agent using Mastra and Snowflake MCP Server.  
+I will summarize how to create an AI agent using Mastra and how to use Snowflake data to create an AI agent.
+
+### What is Mastra?
+
+It is a framework for creating so-called AI agents.
+Since it is developed by the Gatsby team members, there is a mysterious sense of security.
+It has various functions such as Agentic Workflow, RAG, and agent evaluation functions.
+
+### Implementing with Mastra x Next.js x Snowflake MCP Server
+
+1. Create a Next.js project
+`$ create-next-app@latest next-snowflake-mastra`
+
+2. Install Mastra
+
+``` bash
+$ npm install -g mastra@latest 
+$ mastra init
+```
+ 
+When you run `mastra init`, it proceeds in a wizard format, but be careful only about the following parts.
+
+- Create the src/mastra directory and set the entry point
+- Add necessary dependencies
+- Set TypeScript compiler options
+
+3. Implement the AI agent that calls the Snowflake MCP Server
+Set the MCPConfiguration so that the Agent can use MCP
+
+``` typescript
+const mcp = new MCPConfiguration({
+  id: "snowflake-agent-mcp",
+  servers: {
+    snowflake_pip: {
+      command: "uv",
+      args: [
+        "--directory",
+        "/Users/your_user_name/ghq/github.com/isaacwasserman/mcp-snowflake-server",
+        "run",
+        "mcp_snowflake_server",
+        "--account",
+        "ORG_NAME_ACCOUNT_NAME",
+        "--warehouse",
+        "YOUR_WH",
+        "--user",
+        "YOUR_USER_NAME",
+        "--password",
+        "YOUR_PASSWORD",
+        "--role",
+        "SYSADMIN",
+        "--database",
+        "YOUR_DATABASE",
+        "--schema",
+        "YOUR_SCHEMA",
+      ]
+    }
+  },
+});
+```
+
+Create two types of Agents.
+- snowflakeQueryAgent: An agent that analyzes user questions and retrieves appropriate query results
+- snowflakeAnalysisAgent: An agent that analyzes data and visualizes it as an expert in data analysis
+
+`snowflakeQueryAgent` analyzes user questions and returns appropriate query results.  
+It is good to write in detail about the databases, schemas, tables that can be analyzed, and what kind of data is in them so that it can query nicely.
+
+`snowflakeAnalysisAgent` analyzes data and provides insights as an expert in data analysis and visualization. It uses tools to generate data for visualization and records insights.
+
+```typescript
+export const snowflakeQueryAgent = new Agent({
+  name: "snowflakeQueryAgent",
+  instructions: `  
+        Analyze user questions and retrieve appropriate query results.
+
+        Available databases: SUMO
+        Available schemas: CHANCO
+        
+        Available tables:
+        - BANZUKE: Information on sumo wrestler rankings
+        
+        【BANZUKE table】
+        Information on sumo wrestler rankings (data from January 1983 to July 2024)
+        
+        - ID: Unique ID of the wrestler
+        - RIKISHI: Wrestler's name
+        - RANK: Initials of the ranking (class and position)
+          * Y = Yokozuna (highest rank)
+          * O = Ozeki
+          * S = Sekiwake
+          * K = Komusubi
+          * M = Maegashira
+          * J = Juryo
+          * Sd = Makushita
+          * Numbers indicate rank (e.g., Y1e = Yokozuna East 1st)
+          * e = East, w = West
+          * HD = Absence due to injury
+          * YO = Warning from the Yokozuna Deliberation Council
+        - HEYA: Stable name (sumo stable to which the wrestler belongs)
+        - SHUSSHIN: Place of origin
+        - BIRTH_DATE: Date of birth
+        - HEIGHT: Height (cm)
+        - WEIGHT: Weight (kg)
+        - BASHO: Tournament (year and month format, e.g., 2023.01)
+        - PREV: Previous tournament ranking
+        - PREV_W: Number of wins in the previous tournament, note that if BASHO is January 2023, PREV_W is the number of wins in the November 2022 tournament
+        - PREV_L: Number of losses in the previous tournament, note that if BASHO is January 2023, PREV_L is the number of losses in the November 2022 tournament
+        
+        Since date-type data cannot be converted to JSON format, when retrieving date-type data,
+        use the TO_VARCHAR function to convert it to string type. Example:
+        TO_VARCHAR(BIRTH_DATE, 'YYYY-MM-DD') as BIRTH_DATE
+        When calculating the win rate, there may be cases where the number of matches is 0 due to the wrestler's absence,
+        so use the CASE statement to ensure that the denominator does not become 0.
+      `,
+  model: openai("gpt-4o-mini"),
+  tools: {
+    ...(await mcp.getTools()),
+  },
+});
+
+export const snowflakeAnalysisAgent = new Agent({
+  name: "snowflakeAnalysisAgent",
+  instructions: `
+        You are an expert in data analysis and visualization.
+
+        Analyze the given data and provide the following:
+        2. Important insights obtained from the data (at least 3)
+        3. Detailed explanation of the analysis results
+
+        【About data format】
+        The input data will be provided in one of the following formats:
+        - Structured data in JSON format
+        - Text data (e.g., list of sumo wrestler rankings)
+
+        If you receive text data, first understand the content and structure it in a form that can be analyzed.
+        For example, if a list of wrestlers is provided, you can analyze the win rate, the relationship between weight and win rate, the distribution of places of origin, etc.
+
+        Be sure to use the following tools:
+        - visualizeDataTool (for data visualization)
+        - snowflake_pip_append_insight (for recording insights)
+        
+        【How to use visualizeDataTool】
+
+        visualizeDataTool({
+          data: [...], // Array of data to visualize (required)
+          visualizationType: "bar", "line", "pie", "table"
+          title: "Title", // Optional
+          xAxis: "Column name for X-axis", // Optional
+          yAxis: "Column name for Y-axis" // Optional
+        })
+
+        Choose the appropriate visualization type according to the characteristics of the data:
+        - Comparative data → Bar chart (bar)
+        - Time series data → Line chart (line)
+        - Composition ratio → Pie chart (pie)
+
+        【About insights】
+        Use the snowflake_pip_append_insight tool to record important insights obtained from the data:
+
+        snowflake_pip_append_insight({
+          insight: "Description of the discovered insight"
+        })
+
+        Each insight should be specific and based on the data.
+        Example: "The average win rate of Juryo wrestlers in 2023 is 58%, an increase of 5% from the previous year."
+
+        【About analysis text】
+        Finally, provide a detailed explanation of the overall analysis results.
+        This text should include:
+        - Overview of the data
+        - Key trends and features
+        - Detailed explanation of insights
+        - Since images cannot be displayed, limit the explanation to text.
+      `,
+  model: openai("gpt-4o-mini"),
+  tools: {
+    ...snowflakeTools,
+    ...(await mcp.getTools()),
+  },
+});
+```
+
+Next, write the process to call the Agent in Server Actions.
+
+```typescript
+"use server";
+
+import { mastra } from "@/mastra";
+
+export type MessageResponse = {
+  text: string;
+  data?: any;
+  insights?: string[];
+};
+
+/**
+ * Send a message to the Snowflake agent
+ * @param message User's message
+ * @returns Response from the agent
+ */
+export async function sendMessage(message: string): Promise<MessageResponse> {
+  try {
+    // Execute the workflow
+    const snowflakeWorkflow = mastra.getWorkflow("snowflakeWorkflow");
+    const { start } = snowflakeWorkflow.createRun();
+
+    console.log("userQuery", message);
+
+    // Start the workflow and execute all steps
+    const result = await start({
+      triggerData: { userQuery: message },
+    });
+
+    const queryResult = workflowResult.results?.queryData?.output?.queryResult;
+    const analysisResult = workflowResult.results?.analyzeData?.output;
+
+    // If there is a query result but no analysis result
+    if (queryResult && (!analysisResult || !analysisResult.analysisText)) {
+      return {
+        text: queryResult,
+        data: null,
+        insights: []
+      };
+    }
+    
+    // If there is an analysis result
+    if (analysisResult) {
+      return {
+        text: analysisResult.analysisText || "Analysis completed.",
+        data: analysisResult.visualizationData,
+        insights: analysisResult.insights || []
+      };
+    }
+    
+    // If neither is available
+    return {
+      text: "An error occurred while retrieving the data.",
+      data: null,
+      insights: []
+    };
+  } catch (error) {
+    console.error("Agent call error:", error);
+    throw new Error("An error occurred while communicating with the agent");
+  }
+}
+```
+
+Finally, create a form in the React Component to input the content to be analyzed and execute the analysis.
+
+4. Let's see
+
+5. What kind of use cases are there?
+This time, I created an agent that generates analysis insights and graphs immediately when you input the content you want to analyze, but I thought that other agents could be created as well.
+
+- Data Cleaning Agent: An agent that detects and cleans missing or abnormal values in the data
+- Reverse ETL Agent: An agent that analyzes data and returns it to the data source
+- Semantic Layer Generation Agent: An agent that analyzes data and generates a semantic layer
