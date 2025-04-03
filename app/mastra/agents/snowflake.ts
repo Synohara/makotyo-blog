@@ -16,7 +16,6 @@ const SNOWFLAKE_PASSWORD = process.env.SNOWFLAKE_PASSWORD;
 const SNOWFLAKE_ROLE = process.env.SNOWFLAKE_ROLE || "SYSADMIN";
 const SNOWFLAKE_DATABASE = process.env.SNOWFLAKE_DATABASE || "SUMO";
 const SNOWFLAKE_SCHEMA = process.env.SNOWFLAKE_SCHEMA || "CHANCO";
-const MCP_SNOWFLAKE_SERVER_PATH = process.env.MCP_SNOWFLAKE_SERVER_PATH || "/opt/mcp-snowflake-server";
 
 // パスワードが設定されていない場合はエラーを表示
 if (!SNOWFLAKE_PASSWORD) {
@@ -28,11 +27,8 @@ const mcp = new MCPConfiguration({
   id: "snowflake-agent-mcp",
   servers: {
     snowflake_pip: {
-      command: "uv",
+      command: "uvx",
       args: [
-        "--directory",
-        MCP_SNOWFLAKE_SERVER_PATH,
-        "run",
         "mcp_snowflake_server",
         "--account",
         SNOWFLAKE_ACCOUNT,
