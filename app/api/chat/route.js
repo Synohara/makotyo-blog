@@ -16,8 +16,8 @@ export async function GET(request) {
       );
     }
 
-    // ファイルパスを構築（_componentsディレクトリ内のJSONファイルを読み込む）
-    const filePath = path.join(process.cwd(), 'app', '_components', `${filename}.json`);
+    // ファイルパスを構築（componentsディレクトリ内のJSONファイルを読み込む）
+    const filePath = path.join(process.cwd(), 'app', 'components', `${filename}.json`);
 
     // ファイルが存在するか確認
     if (!fs.existsSync(filePath)) {

@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "SNOWFLAKE_ACCOUNT": "EHJDYCR-KP59909",
+    "SNOWFLAKE_WAREHOUSE": "COMPUTE_WH",
+    "SNOWFLAKE_USER": "MAKOTYO",
+    "SNOWFLAKE_ROLE": "SYSADMIN",
+    "SNOWFLAKE_DATABASE": "SUMO",
+    "SNOWFLAKE_SCHEMA": "CHANCO",
+    "MCP_SNOWFLAKE_SERVER_PATH": "/opt/mcp-snowflake-server"
+  }
+}

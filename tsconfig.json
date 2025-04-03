@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./app/*"
+      ]
+    },
     "target": "ES2017",
     "lib": [
       "dom",
@@ -11,9 +16,9 @@
     "strict": false,
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
+    "module": "node16",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

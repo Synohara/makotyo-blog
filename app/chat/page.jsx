@@ -1,5 +1,5 @@
 import React from 'react';
-import ClaudeChat from '../_components/ClaudeChat';
+import ClaudeChat from '../components/ClaudeChat';
 
 export const metadata = {
   title: 'Claude Chat Viewer',

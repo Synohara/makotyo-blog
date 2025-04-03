@@ -1,5 +1,6 @@
 import nextra from 'nextra'
 
+
 const withNextra = nextra({
   defaultShowCopyCode: true,
   readingTime: true
@@ -7,5 +8,4 @@ const withNextra = nextra({
 
 export default withNextra({
   reactStrictMode: true,
-  cleanDistDir: true
 })
