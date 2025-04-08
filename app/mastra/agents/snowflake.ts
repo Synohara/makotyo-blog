@@ -24,27 +24,22 @@ if (!SNOWFLAKE_PASSWORD) {
 
 // MCPサーバーの設定
 const mcp = new MCPConfiguration({
-  id: "snowflake-agent-mcp",
+  id: "snowflake-mcp",
   servers: {
-    snowflake_pip: {
-      command: "uvx",
-      args: [
-        "mcp_snowflake_server",
-        "--account",
-        SNOWFLAKE_ACCOUNT,
-        "--warehouse",
-        SNOWFLAKE_WAREHOUSE,
-        "--user",
-        SNOWFLAKE_USER,
-        "--password",
-        SNOWFLAKE_PASSWORD || "",
-        "--role",
-        SNOWFLAKE_ROLE,
-        "--database",
-        SNOWFLAKE_DATABASE,
-        "--schema",
-        SNOWFLAKE_SCHEMA
-      ]
+    "mcp-snowflake": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@makotyo/mcp-snowflake"
+      ],
+      "env": {
+        "SNOWFLAKE_ACCOUNT": "EHJDYCR-KP59909",
+        "SNOWFLAKE_USER": "MAKOTYO",
+        "SNOWFLAKE_PASSWORD": "***REMOVED***",
+        "SNOWFLAKE_WAREHOUSE": "COMPUTE_WH",
+        "SNOWFLAKE_DATABASE": "SUMO",
+        "SNOWFLAKE_SCHEMA": "CHANCO"
+      }
     }
   },
 });
@@ -53,7 +48,7 @@ export const snowflakeDataAgent = new Agent({
   name: "Graph Data Generator",
   instructions: `
         あなたは大相撲データの生成に特化したエージェントです。
-        基本的には必ずsnowflake_pip_read_queryを使用してデータを取得し、
+        基本的には必ずreadQueryを使用してデータを取得し、
         取得したデータを省略せずに伝えてください。
 
         またクエリできるデータの情報は以下です。
