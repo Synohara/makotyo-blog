@@ -5,6 +5,8 @@ import {
   snowflakeAnalysisAgent
 } from './agents/snowflake';
 import { snowflakeWorkflow } from './workflows/snowflakeWorkflow';
+import { VercelDeployer } from '@mastra/deployer-vercel';
+
 
 // Mastraインスタンスの作成とエージェントの登録
 export const mastra = new Mastra({
@@ -16,4 +18,9 @@ export const mastra = new Mastra({
     graphDataGenerator,
     snowflakeAnalysisAgent,
   },
+  deployer: new VercelDeployer({
+    teamSlug: 'synoharas-projects',
+    projectName: 'mastra',
+    token: '***REMOVED***'
+  })
 });

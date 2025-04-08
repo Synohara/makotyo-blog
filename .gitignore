@@ -21,3 +21,6 @@ tsconfig.tsbuildinfo
 _pagefind/
 docs/public/sitemap.xml
 .vercel
+
+
+.mastra
