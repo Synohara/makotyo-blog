@@ -21,6 +21,6 @@ export const mastra = new Mastra({
   deployer: new VercelDeployer({
     teamSlug: 'synoharas-projects',
     projectName: 'mastra',
-    token: '***REMOVED***'
+    token: process.env.VERCEL_TOKEN,
   })
 });
