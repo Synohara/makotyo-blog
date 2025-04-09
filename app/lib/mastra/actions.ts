@@ -1,6 +1,6 @@
 "use server";
 
-import { mastra } from "@/mastra";
+import { MastraClient } from "@mastra/client-js";
 
 export type MessageResponse = {
   text: string;
@@ -75,7 +75,7 @@ const convertDataSchema = async ({ context }: { context: ContextType }) => {
     console.error("データ視覚化エラー:", error);
     throw new Error(`データの視覚化中にエラーが発生しました: ${error.message || error}`);
   }
-}
+};
 
 // ランダムな色を生成する関数
 function generateColors(count: number): string[] {
@@ -95,32 +95,39 @@ function generateColors(count: number): string[] {
 export async function sendMessage(message: string): Promise<MessageResponse> {
   try {
     // ワークフローを実行
-    const snowflakeWorkflow = mastra.getWorkflow("snowflakeWorkflow");
-    const { start } = snowflakeWorkflow.createRun();
-
-    console.log("userQuery", message);
-
-    // ワークフローを開始し、全ステップを実行
-    const result = await start({
-      triggerData: { userQuery: message },
+    const client = new MastraClient({
+      baseUrl: "https://mastra-three.vercel.app", // Default Mastra development server port
     });
 
+    const snowflakeWorkflow = client.getWorkflow("snowflakeWorkflow");
+    const { runId } = await snowflakeWorkflow.createRun();
+
+    console.log("Workflow runId:", runId);
+
+    // Start workflow run
+    const result = await snowflakeWorkflow.startAsync({
+      runId: runId,
+      triggerData: { userQuery: message },
+    })
+
     console.log("Workflow result:", result);
+    console.log("userQuery", message);
 
     // 結果の構造を詳細にログ出力
     console.log("Workflow result structure:", JSON.stringify(result, null, 2));
-    
+
     // TypeScriptエラーを回避するために型アサーションを使用
     const workflowResult = result as any;
-    
+
     // フィードバックから判明した正しい構造に基づいて結果を取得
     const queryResult = workflowResult.results?.queryData?.output?.result;
     const analysisText = workflowResult.results?.analyzeData?.output?.analysisText;
     let graphData = workflowResult.results?.queryData?.output?.graphData;
+
     if (graphData) {
       graphData = await convertDataSchema({ context: graphData });
     }
-    
+
     console.log("Query result:", queryResult);
     console.log("Analysis text:", analysisText);
     console.log("Graph data:", graphData);
@@ -132,7 +139,7 @@ export async function sendMessage(message: string): Promise<MessageResponse> {
         data: null,
       };
     }
-    
+
     // 分析結果がある場合
     if (analysisText) {
       return {
@@ -140,12 +147,13 @@ export async function sendMessage(message: string): Promise<MessageResponse> {
         data: graphData,
       };
     }
-    
+
     // どちらもない場合
     return {
       text: "データの取得中にエラーが発生しました。",
       data: null,
     };
+
   } catch (error) {
     console.error("エージェント呼び出しエラー:", error);
     throw new Error("エージェントとの通信中にエラーが発生しました");
