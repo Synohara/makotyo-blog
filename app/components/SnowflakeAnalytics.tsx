@@ -6,8 +6,7 @@ import { sendMessage } from "../lib/mastra/actions";
 import { Button } from "./ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card";
 import { Textarea } from "./ui/textarea";
-import { Input } from "./ui/input";
-import { cn } from "../lib/utils";
+import { cn } from "../lib/utils.js";
 import { SendIcon, BarChart3Icon, LightbulbIcon, SearchIcon, LoaderIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
