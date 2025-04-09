@@ -8,38 +8,12 @@ import { openai } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 import { MCPConfiguration } from "@mastra/mcp";
 
-// 環境変数からSnowflake接続情報を取得
-const SNOWFLAKE_ACCOUNT = process.env.SNOWFLAKE_ACCOUNT || "EHJDYCR-KP59909";
-const SNOWFLAKE_WAREHOUSE = process.env.SNOWFLAKE_WAREHOUSE || "COMPUTE_WH";
-const SNOWFLAKE_USER = process.env.SNOWFLAKE_USER || "MAKOTYO";
-const SNOWFLAKE_PASSWORD = process.env.SNOWFLAKE_PASSWORD;
-const SNOWFLAKE_ROLE = process.env.SNOWFLAKE_ROLE || "SYSADMIN";
-const SNOWFLAKE_DATABASE = process.env.SNOWFLAKE_DATABASE || "SUMO";
-const SNOWFLAKE_SCHEMA = process.env.SNOWFLAKE_SCHEMA || "CHANCO";
-
-// パスワードが設定されていない場合はエラーを表示
-if (!SNOWFLAKE_PASSWORD) {
-  console.error("環境変数SNOWFLAKE_PASSWORDが設定されていません。");
-}
-
 // MCPサーバーの設定
 const mcp = new MCPConfiguration({
   id: "snowflake-mcp",
   servers: {
     "mcp-snowflake": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@makotyo/mcp-snowflake"
-      ],
-      "env": {
-        "SNOWFLAKE_ACCOUNT": SNOWFLAKE_ACCOUNT,
-        "SNOWFLAKE_USER": SNOWFLAKE_USER,
-        "SNOWFLAKE_PASSWORD": SNOWFLAKE_PASSWORD,
-        "SNOWFLAKE_WAREHOUSE": SNOWFLAKE_WAREHOUSE,
-        "SNOWFLAKE_DATABASE": SNOWFLAKE_DATABASE,
-        "SNOWFLAKE_SCHEMA": SNOWFLAKE_SCHEMA,
-      }
+      "url": new URL(process.env.COMPOSIO_URL),
     }
   },
 });
