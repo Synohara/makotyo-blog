@@ -4,7 +4,13 @@ import {
   graphDataGenerator,
   snowflakeAnalysisAgent
 } from './agents/snowflake';
+import {
+  duckdbDataAgent,
+  duckdbGraphDataGenerator,
+  duckdbAnalysisAgent
+} from './agents/duckdb';
 import { snowflakeWorkflow } from './workflows/snowflakeWorkflow';
+import { duckdbWorkflow } from './workflows/duckdbWorkflow';
 import { VercelDeployer } from '@mastra/deployer-vercel';
 
 
@@ -12,11 +18,15 @@ import { VercelDeployer } from '@mastra/deployer-vercel';
 export const mastra = new Mastra({
   workflows: {
     snowflakeWorkflow,
+    duckdbWorkflow,
   },
   agents: {
     snowflakeDataAgent,
     graphDataGenerator,
     snowflakeAnalysisAgent,
+    duckdbDataAgent,
+    duckdbGraphDataGenerator,
+    duckdbAnalysisAgent,
   },
   deployer: new VercelDeployer({
     teamSlug: 'synoharas-projects',

@@ -92,7 +92,7 @@ function generateColors(count: number): string[] {
  * @param message ユーザーからのメッセージ
  * @returns エージェントからの応答
  */
-export async function sendMessage(message: string): Promise<MessageResponse> {
+export async function sendMessageToSnowflake(message: string): Promise<MessageResponse> {
   try {
     // ワークフローを実行
     const client = new MastraClient({
@@ -104,7 +104,6 @@ export async function sendMessage(message: string): Promise<MessageResponse> {
 
     console.log("Workflow runId:", runId);
 
-    // Start workflow run
     const result = await snowflakeWorkflow.startAsync({
       runId: runId,
       triggerData: { userQuery: message },
@@ -157,5 +156,91 @@ export async function sendMessage(message: string): Promise<MessageResponse> {
   } catch (error) {
     console.error("エージェント呼び出しエラー:", error);
     throw new Error("エージェントとの通信中にエラーが発生しました");
+  }
+}
+
+/**
+ * メッセージをデータベースに送信する
+ * @param message ユーザーからのメッセージ
+ * @param dbType データベースタイプ（"snowflake" または "duckdb"）
+ * @returns エージェントからの応答
+ */
+export async function sendMessage(message: string, dbType: "snowflake" | "duckdb" = "snowflake"): Promise<MessageResponse> {
+  if (dbType === "duckdb") {
+    return sendMessageToDuckDB(message);
+  } else {
+    return sendMessageToSnowflake(message);
+  }
+}
+
+/**
+ * メッセージをDuckDBエージェントに送信する
+ * @param message ユーザーからのメッセージ
+ * @returns エージェントからの応答
+ */
+export async function sendMessageToDuckDB(message: string): Promise<MessageResponse> {
+  try {
+    // ワークフローを実行
+    const client = new MastraClient({
+      baseUrl: "https://mastra-three.vercel.app", // Default Mastra development server port
+    });
+
+    const duckdbWorkflow = client.getWorkflow("duckdbWorkflow");
+    const { runId } = await duckdbWorkflow.createRun();
+
+    console.log("DuckDB Workflow runId:", runId);
+
+    const result = await duckdbWorkflow.startAsync({
+      runId: runId,
+      triggerData: { userQuery: message },
+    })
+
+    console.log("DuckDB Workflow result:", result);
+    console.log("userQuery", message);
+
+    // 結果の構造を詳細にログ出力
+    console.log("DuckDB Workflow result structure:", JSON.stringify(result, null, 2));
+
+    // TypeScriptエラーを回避するために型アサーションを使用
+    const workflowResult = result as any;
+
+    // フィードバックから判明した正しい構造に基づいて結果を取得
+    const queryResult = workflowResult.results?.queryData?.output?.result;
+    const analysisText = workflowResult.results?.analyzeData?.output?.analysisText;
+    let graphData = workflowResult.results?.queryData?.output?.graphData;
+
+    if (graphData) {
+      graphData = await convertDataSchema({ context: graphData });
+    }
+
+    console.log("DuckDB Query result:", queryResult);
+    console.log("DuckDB Analysis text:", analysisText);
+    console.log("DuckDB Graph data:", graphData);
+
+    // クエリ結果はあるが分析結果がない場合
+    if (queryResult && !analysisText) {
+      return {
+        text: queryResult,
+        data: null,
+      };
+    }
+
+    // 分析結果がある場合
+    if (analysisText) {
+      return {
+        text: analysisText || "分析が完了しました。",
+        data: graphData,
+      };
+    }
+
+    // どちらもない場合
+    return {
+      text: "データの取得中にエラーが発生しました。",
+      data: null,
+    };
+
+  } catch (error) {
+    console.error("DuckDBエージェント呼び出しエラー:", error);
+    throw new Error("DuckDBエージェントとの通信中にエラーが発生しました");
   }
 }
