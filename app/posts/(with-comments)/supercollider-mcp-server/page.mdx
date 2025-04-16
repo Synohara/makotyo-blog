@@ -1,0 +1,237 @@
+---
+title: SuperColliderを操作するMCPサーバーを作ってみた
+date: 2025/04/16
+tags: [tech, SuperCollider, MCP, 音楽, プログラミング]
+description: Model Context Protocol (MCP) を使ってSuperColliderを対話的に操作できるサーバーを開発しました。
+author: makotyo
+---
+
+## はじめに
+
+
+SuperColliderは、プログラミングで音響合成が行える強力なシンセサイザーですが、使いこなすにはSuperColliderの文法の理解と音響合成の知識が必要です。  
+そこで最近注目を集めているModel Context Protocol (MCP) を使って手軽に自然言語でスパコを操ることができるのでは？と考え、SuperColliderを操作するMCPサーバーを開発しました。
+
+import { Cards } from 'nextra/components'
+import { FaGithub } from "react-icons/fa";
+
+
+開発したMCPサーバーのリポジトリは以下のリンクからアクセスできるので、興味のある方はぜひのぞいてみてください。
+
+<Cards>
+  <Cards.Card
+    icon={<FaGithub />}
+    title="supercollider-mcp"
+    href="https://github.com/Synohara/supercollider-mcp"
+    target="_blank"
+  />
+</Cards>
+
+この記事ではインストールのやり方や使い方を解説していこうと思います。
+
+## デモ
+ 
+import { Callout } from 'nextra/components'
+ 
+<Callout type="warning">
+※ 音量注意
+</Callout>
+<video src="/mcp_supercollider_demo.mov" controls={true}></video>
+
+
+<ChatBubble 
+  content="池田亮司のようなSFチックでランダムなパルスを15秒鳴らしてください。"
+  isUser={true}
+/>
+
+<audio src="/ryoji_ikeda_1.wav" controls={true}></audio>
+
+<br/>
+
+
+<ChatBubble 
+  content="もう少し複雑なパターンでお願いできますか？"
+  isUser={true}
+/>
+
+
+<audio src="/ryoji_ikeda_2.wav" controls={true}></audio>
+
+
+
+## できること
+
+2つのToolを提供しています。
+
+**synth-execute**
+
+1つのシンセサイザーを作成し、そのコードで音を出します。
+引数はシンセサイザー名、シンセサイザーのコードを含むオブジェクトと再生時間です。
+
+スキーマだけ抜粋すると以下のようになります。
+
+```typescript
+{
+    synth: z.object({
+      name: z.string().describe("シンセの名前"),
+      code: z.string().describe("シンセのコード")
+    }).describe("再生するシンセの情報"),
+    duration: z.number().optional().describe("再生時間（ミリ秒）。デフォルトは5000（5秒）")
+}
+```
+
+**multi-synth-execute**
+
+複数のシンセサイザーを作成し、それらを同時に演奏します。
+引数はシンセサイザーのオブジェクトのリストと再生時間です。
+
+こちらのスキーマは以下のようになります。
+
+```typescript
+{
+  synths: z.array(
+    z.object({
+      name: z.string().describe("シンセの名前"),
+      code: z.string().describe("シンセのコード")
+    })
+  ).describe("再生するシンセのリスト"),
+  duration: z.number().optional().describe("再生時間（ミリ秒）。デフォルトは10000（10秒）")
+}
+```
+
+
+
+## インストール方法
+
+### 前提条件
+
+M1 Macで以下のソフトウェアを利用して動作確認を行いました。
+
+- SuperCollider 3.13.0
+- Node.js v22.2.0
+- npm 10.7.0
+
+
+### セットアップ
+
+#### SuperColliderのインストール
+
+- [SuperColliderの公式サイト](https://supercollider.github.io/download)からインストーラーをダウンロードしてインストールします。
+
+#### Node.jsのインストール
+
+- [Node.jsの公式サイト](https://nodejs.org/ja/download)を参照してインストールします。
+
+#### MCPクライアントの設定
+
+Claude DesktopやVS CodeなどMCPサーバーが利用可能なクライアントへ以下の設定を追加します。
+
+
+- Claude Desktopの場合
+
+`/Users/<ユーザー名>/Library/Application\ Support/Claude/claude_desktop_config.json` に以下の設定を追加します。
+
+```json
+{
+  "mcpServers": {
+    "supercollider-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@makotyo/supercollider-mcp",
+      ]
+    }
+  }
+}
+```
+
+- VS Codeの場合
+
+VS Codeのユーザー設定（json）ファイルに以下のjsonブロックを追加してください。
+設定を開くには、`Ctrl + Shift + P`を押して「Preferences: Open User Settings (JSON)」と入力します。
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "mcp-supercollider": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@makotyo/mcp-supercollider"
+        ]
+      }
+    }
+  }
+}
+```
+
+## 使用例
+
+以下のような操作が自然言語で可能になります：
+
+import { ChatBubble } from '../../../components/ChatBubble'
+
+1. サイン波の生成
+
+<ChatBubble 
+  content="サイン波を出してください"
+  isUser={true}
+/>
+
+
+<ChatBubble 
+  content={`サイン波を5秒間再生しました。
+  使用したSuperColliderコードは以下の通りです。
+  \`{ SinOsc.ar(440, 0, 0.2) }\`
+このコードは、440Hzのサイン波（A4）を音量0.2で出力します。`}
+  toolResult={true}
+  toolResultTitle="synth-execute"
+  toolResultContent={`{
+  "synth": {
+    "code": "{ SinOsc.ar(440, 0, 0.2) }",
+    "name": "SimpleSine"
+  },
+  "duration": 5000
+}
+
+シンセ名: SimpleSine
+コード: { SinOsc.ar(440, 0, 0.2) }
+再生時間: \${duration / 1000}秒`}
+/>
+
+2. エフェクトの適用
+
+<ChatBubble 
+  content="現在の音にリバーブを追加して、ディレイタイムを2秒に設定してください"
+  isUser={true}
+/>
+
+<ChatBubble 
+  content={`サイン波にリバーブを追加しました。使用したSuperColliderコードは以下の通りです。
+  使用したSuperColliderコードは以下の通りです。
+  \`{ FreeVerb.ar(SinOsc.ar(440, 0, 0.2), mix: 1, room: 1, damp: 0.5) }\`
+このコードは、440Hzのサイン波（A4）を音量0.2で出力します。
+このコードはリバーブ効果を最大（mix: 1, room: 1）で適用していますが、「ディレイタイム2秒」という指定に正確に対応するには、リバーブではなく明示的なディレイ（例えばCombNやDelayN）を使う必要があります。ディレイタイム2秒のサイン波＋リバーブの例を希望されますか？`}
+  toolResult={true}
+  toolResultTitle="synth-execute"
+  toolResultContent={`{
+  "synth": {
+    "code": "{ FreeVerb.ar(SinOsc.ar(440, 0, 0.2), mix: 1, room: 1, damp: 0.5) }",
+    "name": "SineWithReverb"
+  },
+  "duration": 5000
+}
+
+シンセ名: SineWithReverb
+コード: { FreeVerb.ar(SinOsc.ar(440, 0, 0.2), mix: 1, room: 1, damp: 0.5) }
+再生時間: \${duration / 1000}秒`}
+/>
+
+
+## まとめ
+
+MCPサーバーを活用することで、SuperColliderでより直感的に音作りができるようになります。  
+さらに複雑なシーケンスの作成に挑みたい場合は生成されたコードを元にSuperColliderのIDEで編集していっても良いでしょう。
+
+音楽制作の新しい可能性を広げるツールとして、ぜひ試してみてください。
