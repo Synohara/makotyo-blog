@@ -33,6 +33,11 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <Head backgroundColor={{ dark: '#0f172a', light: '#fcfcfa' }} />
+      <script 
+        async 
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5775793700738279"
+        crossOrigin="anonymous">
+      </script>
       <body>
           <Layout>
             <Navbar pageMap={await getPageMap()}>
