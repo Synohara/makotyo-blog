@@ -6,7 +6,27 @@ import './globals.css'
 import { Analytics } from "@vercel/analytics/react"
 
 export const metadata = {
-  title: 'Blog Example'
+  title: 'makotyo blog',
+  description: 'Tech blog by makotyo - AI, development, and more',
+  keywords: 'tech, AI, development, programming, blog',
+  authors: [{ name: 'makotyo' }],
+  openGraph: {
+    title: 'makotyo blog',
+    description: 'Tech blog by makotyo - AI, development, and more',
+    url: 'https://makotyo.com',
+    siteName: 'makotyo blog',
+    locale: 'ja_JP',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'makotyo blog',
+    description: 'Tech blog by makotyo - AI, development, and more',
+    creator: '@makotyo',
+  },
+  other: {
+    'google-adsense-account': 'ca-pub-5775793700738279'
+  }
 }
 
 export default async function RootLayout({ children }) {
