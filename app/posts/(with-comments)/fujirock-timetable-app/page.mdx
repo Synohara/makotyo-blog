@@ -1,0 +1,222 @@
+---
+title: "フジロック2025のタイムテーブル確認ウェブアプリを作ってみた"
+publishedAt: "2025-06-10"
+summary: "FUJI ROCK FESTIVAL 2025に向けて、マイタイムテーブル作成・会場マップ・移動ルート計算ができるWebアプリを開発しました。Pythonスクレイピング + Next.js + Leafletマップでフェス体験を最適化。"
+tags: ["Next.js", "Python", "スクレイピング", "Leaflet", "音楽フェス", "React"]
+---
+
+import { MomotaroStoryFlow } from '../../components/MomotaroStoryFlow'
+
+# フジロック2025のタイムテーブル確認ウェブアプリを作ってみた
+
+FUJI ROCK FESTIVAL 2025の開催が発表され、タイムテーブルも公開されたので、より便利にフェスを楽しむためのWebアプリを作ってみました。
+
+**Claude Code**を使って爆速開発したおかげで、わずか数時間でMVPから本格的な機能まで一気に実装できました！
+
+## 🎪 作ったもの
+
+### 主な機能
+
+- **タイムテーブル表示**: 3日間すべてのスケジュールを一覧表示
+- **マイタイムテーブル作成**: 見たいアーティストを選択して自分だけのスケジュール作成
+- **時間重複チェック**: 同時刻のアーティストを選択した場合の警告表示
+- **会場マップ**: インタラクティブなマップで移動ルートをシミュレーション
+- **エクスポート機能**: 作成したタイムテーブルをテキストファイルで保存
+- **検索・フィルタ**: アーティスト名やステージでの絞り込み
+
+## 🛠 技術スタック
+
+### フロントエンド
+- **Next.js 15** + TypeScript
+- **Tailwind CSS** + shadcn/ui
+- **Leaflet** (地図表示用)
+- **Lucide React** (アイコン)
+
+### データ取得
+- **Python** + BeautifulSoup4 (スクレイピング)
+- **uv** (Python パッケージ管理)
+
+### デプロイ
+- **Cloudflare Pages** (静的サイト)
+
+## 📊 データ取得の流れ
+
+```python
+# 公式サイトからタイムテーブル情報をスクレイピング
+# https://frf25.festimetable.info/d1.html からd3.htmlまで
+def scrape_timetable():
+    performances = []
+    for day in range(1, 4):
+        url = f"https://frf25.festimetable.info/d{day}.html"
+        # BeautifulSoup4でHTML解析
+        # アーティスト名、時間、ステージ情報を抽出
+        performances.extend(parse_day_schedule(url, day))
+    
+    return {
+        "performances": performances,
+        "stages": extract_stage_info(),
+        "festival_info": {
+            "name": "FUJI ROCK FESTIVAL 2025",
+            "dates": ["2025-07-25", "2025-07-26", "2025-07-27"]
+        }
+    }
+```
+
+## 🎨 UI/UX のポイント
+
+### 1. レスポンシブデザイン
+モバイルファーストで設計し、スマートフォンでの操作性を重視しました。フェス会場では基本的にスマホで確認することになるので、タップしやすいボタンサイズや見やすいフォントサイズに調整。
+
+### 2. リアルタイム重複チェック
+同じ時間帯の複数アーティストを選択すると、赤色でハイライト表示して重複を警告。どちらを優先するか判断しやすくしました。
+
+### 3. タイムライン表示
+選択したアーティストを時系列で表示し、会場間の移動時間も考慮できるように。重複するパフォーマンスは横並びで表示して視覚的に分かりやすく。
+
+## 🗺 マップ機能の実装
+
+```tsx
+// Leafletを使ったインタラクティブマップ
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+
+const MapView = ({ myTimetable, timetableData, selectedDay }) => {
+  const venues = [
+    { name: "GREEN STAGE", lat: 36.8342, lng: 138.7864 },
+    { name: "WHITE STAGE", lat: 36.8350, lng: 138.7870 },
+    // ... 他の会場座標
+  ]
+
+  // 選択したアーティストの会場間移動ルートを計算
+  const calculateRoute = () => {
+    const selectedPerformances = myTimetable
+      .map(id => timetableData.performances.find(p => p.id === id))
+      .filter(p => p && p.day === selectedDay)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time))
+    
+    return selectedPerformances.map(perf => 
+      venues.find(v => v.name === perf.stage)
+    ).filter(Boolean)
+  }
+
+  return (
+    <MapContainer center={[36.8342, 138.7864]} zoom={15}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {/* 移動ルートの表示 */}
+      <Polyline positions={calculateRoute().map(v => [v.lat, v.lng])} />
+    </MapContainer>
+  )
+}
+```
+
+## 💾 ローカルストレージ活用
+
+選択したタイムテーブル情報をブラウザのローカルストレージに保存し、ページをリロードしても情報が保持されるように実装。
+
+```tsx
+// マイタイムテーブルの永続化
+const [myTimetable, setMyTimetable] = useState(() => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('fujirock2025-mytimetable')
+    return saved ? JSON.parse(saved) : []
+  }
+  return []
+})
+
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('fujirock2025-mytimetable', JSON.stringify(myTimetable))
+  }
+}, [myTimetable])
+```
+
+## 🚀 今後の拡張案
+
+### Phase 1: 基本機能強化
+- リアルタイムアップデート（WebSocket）
+- 友達とのタイムテーブル共有
+- Spotify連携でお気に入りアーティスト自動検出
+
+### Phase 2: 体験向上
+- AR機能（カメラで道案内）
+- PWA対応（オフライン動作）
+- 多言語対応
+
+### Phase 3: コミュニティ
+- パフォーマンス評価・レビューシステム
+- セットリスト共有
+- スタンプラリー機能
+
+## ⚡ Claude Codeでの爆速開発体験
+
+### なぜClaude Codeを選んだのか
+フジロックのタイムテーブル公開から実装まで時間がなかったので、AI支援開発ツールの**Claude Code**を使ってみました。結果的に、これが大正解でした。
+
+### 実際の開発フロー
+
+```bash
+# 1. プロジェクト構築（5分）
+npx create-next-app@latest fujirock-app --typescript --tailwind
+cd fujirock-app
+
+# Claude Codeに「shadcn/uiとLeafletを設定して」と指示
+# → 自動で必要なパッケージインストール、設定ファイル作成
+
+# 2. スクレイピングスクリプト作成（15分）
+# Claude Codeに公式サイトURLを渡すだけで
+# → 完全動作するPythonスクレイピングコード生成
+
+# 3. UI実装（30分）
+# 「タイムテーブル表示コンポーネントを作って」
+# → レスポンシブ対応、重複チェック機能付きのReactコンポーネント完成
+
+# 4. マップ機能（20分）
+# 「Leafletでフジロック会場のマップを作って」
+# → インタラクティブマップ + ルート計算機能まで実装
+```
+
+### Claude Codeの威力
+
+1. **コンテキスト理解**: 「フジロックアプリ」と言うだけで、音楽フェスに必要な機能を提案
+2. **技術選定**: パフォーマンス、コスト、開発効率を考慮した最適なライブラリ選択
+3. **品質**: TypeScript型定義、エラーハンドリング、レスポンシブ対応が最初から含まれる
+4. **デバッグ支援**: エラーが出たらログを貼るだけで瞬時に解決策提示
+
+### 従来開発との比較
+
+| 項目 | 従来開発 | Claude Code使用 |
+|------|----------|-----------------|
+| 企画〜MVP | 2-3日 | **2-3時間** |
+| API調査・設計 | 半日 | **5分** |
+| UI実装 | 1日 | **30分** |
+| バグ修正 | 数時間 | **数分** |
+| 技術調査 | 長時間 | **不要** |
+
+## 📈 学んだこと
+
+### 1. AI支援開発の可能性
+Claude Codeのような高度なAIツールを使うことで、個人開発者でも企業レベルのアプリを短時間で作成可能。アイデアから実装までのスピードが劇的に向上。
+
+### 2. スクレイピングの注意点
+公式サイトの構造変更に対応できるよう、柔軟なパーサーを実装。robots.txtの確認やアクセス頻度の調整も重要。Claude Codeが自動でベストプラクティスを適用してくれました。
+
+### 3. 地図ライブラリの選択
+Google Maps APIは有料なので、無料で使えるOpenStreetMap + Leafletを選択。十分な機能性と軽量性を両立。Claude Codeの技術選定アドバイスが的確でした。
+
+### 4. モバイル最適化
+フェス会場での使用を想定し、タッチ操作の使いやすさ、電池消耗の軽減、通信量の最適化を重視。
+
+## 🎵 まとめ
+
+**Claude Code**のおかげで、数時間という短時間でフジロック2025を最大限楽しむためのWebアプリを作成できました。タイムテーブルの管理だけでなく、会場での移動計画も立てられるので、効率的にフェスを回れそうです。
+
+従来なら数日かかる開発が、AI支援により**爆速**で完了。個人開発者にとってClaude Codeは革命的なツールだと実感しました。
+
+特に初回フジロック参加者や、複数の友人とスケジュール調整したい人には便利だと思います。実際のフェス当日の使用感をもとに、さらに改善していく予定です！
+
+音楽フェス好きの皆さん、ぜひフジロック2025で会いましょう🎸
+
+**Claude Codeでサクッとアプリ開発、最高です！**
+
+---
+
+*技術的な詳細やソースコードに興味がある方は、GitHubリポジトリをご覧ください。*
