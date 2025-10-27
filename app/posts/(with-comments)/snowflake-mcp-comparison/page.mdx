@@ -32,10 +32,9 @@ stdioとStreamable HTTP両方の通信方式に対応しているのでローカ
 | 項目 | Managed版 | OSS版 |
 |------|---------|------|
 | **提供元** | Snowflake公式 | Snowflake-Labs（オープンソース） |
-| **ホスティング** | Snowflake側で管理 | 自前でホスティング or ローカル利用 |
+| **ホスティング方式** | Snowflake側で管理（リモートのみ） | 自前でホスティング or ローカル利用 |
 | **使えるツール** | Cortex Analyst、Cortex Search | Cortex Agent、Cortex Search、Cortex Analyst、SQL実行、Semantic View Query、Object Manager |
 | **認証方式** | OAuth（Snowflake built-in OAuth） | ユーザー/パスワード、キーペア、OAuth、SSO、MFA |
-| **ローカル実行** | リモートのみ | ローカル・リモート両方対応可能 |
 
 
 現状Managed版は利用できるツールが限られているためセキュリティ的な要件が厳しくない限りOSS版を利用するほうがベターでしょう。
