@@ -1,5 +1,13 @@
 export const tracks = [
   {
+    title: "風呂キャンセル界隈（DnB Edit）",
+    description: "",
+    releaseDate: "",
+    link: "https://soundcloud.com/makotyo/dnb-edit",
+    tags: [],
+    artwork: "/tracks/dnb-edit.jpg",
+  },
+  {
     title: "808 Steps",
     description: "",
     releaseDate: "",
